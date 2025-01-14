@@ -4,18 +4,29 @@ import random
 import subprocess
 from datetime import datetime
 
-# Définir le chemin absolu du dossier du projet Git
 project_dir = r"C:\Users\EvroHQ\Desktop\fancy\fancy"
 number_file_path = os.path.join(project_dir, "number.txt")
 
-# Changer le répertoire de travail vers le dossier du projet Git
 os.chdir(project_dir)
 
+def read_number():
+    try:
+        with open(number_file_path, 'r') as f:
+            return int(f.read().strip())
+    except FileNotFoundError:
+        with open(number_file_path, 'w') as f:
+            f.write('0')
+        return 0
+    except ValueError:
+        return 0
+
+def write_number(num):
+    with open(number_file_path, 'w') as f:
+        f.write(str(num))
+
 def git_commit():
-    """Effectue un commit Git."""
     try:
         print("Staging changes...")
-        # Utiliser le nom du fichier relatif car on est déjà dans le bon dossier
         subprocess.run(['git', 'add', 'number.txt'], check=True, cwd=project_dir)
 
         date = datetime.now().strftime('%Y-%m-%d')
@@ -26,7 +37,6 @@ def git_commit():
         print(f"Erreur lors du commit Git : {e}")
 
 def git_push():
-    """Pousse les changements sur GitHub."""
     try:
         print("Pushing changes...")
         result = subprocess.run(['git', 'push'], capture_output=True, text=True, check=True, cwd=project_dir)
@@ -41,7 +51,7 @@ def update_cron_with_random_time():
     random_minute = random.randint(0, 59)
 
     task_name = "UpdateNumberTask"
-    script_path = os.path.join(script_dir, "update_number.py")
+    script_path = os.path.join(project_dir, "update_number.py")
     time_str = f"{random_hour:02}:{random_minute:02}"
 
     subprocess.run(f'schtasks /delete /tn "{task_name}" /f', shell=True)
@@ -58,7 +68,7 @@ def update_cron_with_random_time():
 
 def create_startup_task():
     task_name = "UpdateNumberTask"
-    script_path = os.path.join(script_dir, "update_number.py")
+    script_path = os.path.join(project_dir, "update_number.py")
 
     command = f'schtasks /create /tn "{task_name}" /tr "python {script_path}" /sc onstart /ru System /f'
     result = subprocess.run(command, shell=True, capture_output=True, text=True)
@@ -96,5 +106,4 @@ def main():
     print("Fin du script.")
 
 if __name__ == "__main__":
-    main()
     main()
